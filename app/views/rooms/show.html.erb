@@ -1,0 +1,24 @@
+<div id="messages" data-room-id="<%= @room.id %>">
+  <%= render @room.messages %>
+</div>
+
+<%= form_for [@room, Message.new], remote: true do |f| %>
+  <%= f.text_field :content %>
+  <%= f.hidden_field :user_name, value: current_user&.name || 'Anonymous' %>
+  <%= f.submit "Send" %>
+<% end %>
+
+<%= javascript_tag do %>
+  App.messages = App.cable.subscriptions.create({ channel: "MessagesChannel", room_id: <%= @room.id %> }, {
+    received: function(data) {
+      const messageHtml = `
+        <div class="message">
+          <strong>${data.user_name}</strong>
+          <p>${data.content}</p>
+          <small>${data.created_at}</small>
+        </div>
+      `;
+      document.getElementById('messages').insertAdjacentHTML('beforeend', messageHtml);
+    }
+  });
+<% end %>

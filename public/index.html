@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat Rooms</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <script src="https://cdn.jsdelivr.net/npm/@rails/actioncable"></script>
+  <style>
+    .chat-container { margin: 20px; }
+    .messages { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <h2>Chat Rooms</h2>
+    <div>
+      <input type="text" id="username" placeholder="Your username">
+    </div>
+    <div>
+      <input type="text" id="roomName" placeholder="Room name">
+      <button onclick="createRoom()">Create Room</button>
+    </div>
+    <div id="roomsList"></div>
+    
+    <div id="currentRoom" style="display: none;">
+      <h3 id="roomTitle"></h3>
+      <div id="messages" class="messages"></div>
+      <div>
+        <input type="text" id="messageInput" placeholder="Type a message">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentRoom = null;
+    let subscription = null;
+    
+    function createActionCable() {
+      const username = document.getElementById('username').value;
+      return ActionCable.createConsumer(`ws://localhost:3000/cable?username=${encodeURIComponent(username)}`);
+    }
+
+    async function createRoom() {
+      const name = document.getElementById('roomName').value;
+      if (!name) {
+        alert('Please enter a room name');
+        return;
+      }
+      
+      try {
+        const response = await fetch('http://localhost:3000/rooms', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ room: { name } })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          console.error('Server response:', data);
+          alert(data.errors?.join('\n') || 'Failed to create room');
+          return;
+        }
+
+        console.log('Room created:', data);
+        document.getElementById('roomName').value = '';
+        await loadRooms();
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create room: ' + error.message);
+      }
+    }
+
+    async function joinRoom(roomId) {
+      const username = document.getElementById('username').value;
+      if (!username) {
+        alert('Please enter a username first');
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3000/rooms/${roomId}`);
+        const data = await response.json();
+        currentRoom = data.room;
+        
+        document.getElementById('currentRoom').style.display = 'block';
+        document.getElementById('roomTitle').textContent = currentRoom.name;
+        displayMessages(data.messages);
+
+        // Unsubscribe from previous subscription if exists
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+
+        // Create new cable connection with username
+        const cable = createActionCable();
+
+        // Create new subscription
+        subscription = cable.subscriptions.create(
+          { 
+            channel: 'ChatChannel',
+            room_id: roomId,
+            user_name: username
+          },
+          {
+            connected() {
+              console.log('Connected to ChatChannel for room:', roomId);
+            },
+            disconnected() {
+              console.log('Disconnected from ChatChannel');
+            },
+            received(data) {
+              console.log('Received message:', data);
+              appendMessage(data.user_name, data.content);
+            }
+          }
+        );
+      } catch (error) {
+        console.error('Error joining room:', error);
+        alert('Failed to join room');
+      }
+    }
+
+    function appendMessage(userName, content) {
+      const messagesDiv = document.getElementById('messages');
+      const messageElement = document.createElement('div');
+      messageElement.innerHTML = `<p><strong>${userName}:</strong> ${content}</p>`;
+      messagesDiv.appendChild(messageElement);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function loadRooms() {
+      const response = await fetch('http://localhost:3000/rooms');
+      const rooms = await response.json();
+      const list = document.getElementById('roomsList');
+      list.innerHTML = rooms.map(room => 
+        `<div><button onclick="joinRoom(${room.id})">${room.name}</button></div>`
+      ).join('');
+    }
+
+    function displayMessages(messages) {
+      const messagesDiv = document.getElementById('messages');
+      messagesDiv.innerHTML = messages.map(msg => 
+        `<p><strong>${msg.user_name}:</strong> ${msg.content}</p>`
+      ).join('');
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const content = document.getElementById('messageInput').value;
+      const user_name = document.getElementById('username').value;
+      
+      if (!content || !user_name || !currentRoom) return;
+
+      try {
+        const response = await fetch(`http://localhost:3000/rooms/${currentRoom.id}/messages`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            message: { 
+              content, 
+              user_name
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to send message');
+        }
+
+        document.getElementById('messageInput').value = '';
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
+    }
+
+    // Load rooms on page load
+    loadRooms();
+  </script>
+</body>
+</html>
