@@ -1,24 +1,48 @@
-# README
+# Real-time Chat Application (Rails API + ActionCable)
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This project is a real-time chat application built as part of my internship, using Ruby on Rails in API mode and ActionCable for WebSocket functionality. Users can create and join chat rooms to communicate with each other.
 
-Things you may want to cover:
+## Features
 
-* Ruby version
+* **Real-time Communication:** Utilizes ActionCable for instantaneous message delivery.
+* **Chat Rooms:** Users can create and join multiple chat rooms.
+* **User Authentication:** In future JWT authentication will be implemented.
+* **API-driven:** Built as a Rails API, allowing for flexible front-end integration.
+* **WebSocket Support:** Leverages WebSockets for efficient, bi-directional communication.
 
-* System dependencies
+## Technologies Used
 
-* Configuration
+* **Ruby on Rails (API Mode):** Backend framework.
+* **ActionCable:** WebSocket framework for real-time features.
+* **PostgreSQL:** Database management system.
+* **JWT:** Authentication (if implemented).
 
-* Database creation
+## Setup
 
-* Database initialization
+1.  **Clone the repository:**
 
-* How to run the test suite
+    ```bash
+    git clone [repository URL]
+    cd [project directory]
+    ```
 
-* Services (job queues, cache servers, search engines, etc.)
+2.  **Install dependencies:**
 
-* Deployment instructions
+    ```bash
+    bundle install
+    ```
 
-* ...
+3.  **Configure the database:**
+
+    * Create a `config/database.yml` file with your database credentials.
+    * Run database migrations:
+
+        ```bash
+        rails db:create db:migrate
+        ```
+
+4.  **Run the Rails server:**
+
+    ```bash
+    rails s
+    ```
