@@ -8,7 +8,7 @@ class Message < ApplicationRecord
 
   def broadcast_message
     Rails.logger.debug "Broadcasting message: #{attributes}"
-    ActionCable.server.broadcast "room_#{room_id}", {
+    ActionCable.server.broadcast "chat_#{room_id}", {
       id: id,
       content: content,
       user_name: user_name,

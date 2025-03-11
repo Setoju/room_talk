@@ -4,14 +4,6 @@ class MessagesController < ApplicationController
     @message = @room.messages.build(message_params)
 
     if @message.save
-      ActionCable.server.broadcast(
-        "chat_#{@room.id}",
-        {
-          content: @message.content,
-          user_name: params[:message][:user_name]
-        }
-      )
-
       head :ok
     else
       render json: { errors: @message.errors.full_messages }, status: :unprocessable_entity
