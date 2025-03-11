@@ -4,7 +4,7 @@ class MessagesController < ApplicationController
     @message = @room.messages.build(message_params)
 
     if @message.save
-      head :ok
+      render json: @message, status: :created
     else
       render json: { errors: @message.errors.full_messages }, status: :unprocessable_entity
     end
