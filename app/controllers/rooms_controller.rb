@@ -27,11 +27,6 @@ class RoomsController < ApplicationController
   private
 
   def room_params
-    # Handle both wrapped and unwrapped parameters
-    if params[:room].present?
-      params.require(:room).permit(:name)
-    else
-      params.permit(:name)
-    end
+    params.require(:room).permit(:name)
   end
 end
