@@ -1,6 +1,7 @@
 class Message < ApplicationRecord
   belongs_to :room
-  validates :content, :user_name, presence: true
+  validates :user_name, presence: true
+  validates :content, presence: true, length: { maximum: 500 }
 
   after_create_commit :broadcast_message
 

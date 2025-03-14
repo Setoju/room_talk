@@ -25,6 +25,9 @@ gem "solid_cable"
 gem "dotenv-rails", groups: [ :development, :test ]
 
 gem "rspec-rails", groups: [ :development, :test ]
+gem "factory_bot_rails", groups: [ :development, :test ]
+# For random names, emails, passwords etc.
+gem "faker", groups: [ :development, :test ]
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
