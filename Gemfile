@@ -17,6 +17,9 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 gem "redis"
 
+gem 'devise'
+gem 'devise-jwt'
+
 # Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
 gem "solid_cache"
 gem "solid_queue"
